@@ -1,2 +1,3 @@
 # vorizon-ott
-Main site for vorizon
+
+Landing page for website
