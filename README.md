@@ -1,3 +1,3 @@
-# vorizon-ott
+# Vorizon ott
 
-Landing page for website
+Main website
