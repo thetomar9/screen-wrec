@@ -1,3 +1,1 @@
-# Vorizon ott
-
-Main website
+admin page for secondhand repo
