@@ -17,12 +17,12 @@ export default function ShopContextProvider(props){
     const [cartItems,setCartItems] = useState(getDefaultCart());
 
     useEffect(()=>{
-     fetch('https://secondhand-backend-5b5z.onrender.com/allproducts')
+     fetch('http://localhost:4000/allproducts')
      .then((response)=>response.json())
      .then((data)=>setAllProduct(data))
 
      if (localStorage.getItem('auth-token')){
-        fetch('https://secondhand-backend-5b5z.onrender.com/getcart',{
+        fetch('http://localhost:4000/getcart',{
             method:'POST',
             headers:{
                 Accept:'application/form-data',
@@ -38,7 +38,7 @@ export default function ShopContextProvider(props){
     const addToCart = (itemId) =>{
        setCartItems((prev)=>({...prev,[itemId]:prev[itemId]+1}))
        if(localStorage.getItem('auth-token')){
-           fetch('https://secondhand-backend-5b5z.onrender.com/addtocart',{
+           fetch('http://localhost:4000/addtocart',{
            method:'POST',
            headers:{
             Accept:'application/form-data',
@@ -56,7 +56,7 @@ export default function ShopContextProvider(props){
     const removeFromCart = (itemId) =>{
         setCartItems((prev)=>({...prev,[itemId]:prev[itemId]-1}))
         if(localStorage.getItem('auth-token')){
-            fetch('https://secondhand-backend-5b5z.onrender.com/removefromcart',{
+            fetch('http://localhost:4000/removefromcart',{
                 method:'POST',
                 headers:{
                  Accept:'application/form-data',
