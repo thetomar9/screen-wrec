@@ -1,77 +1,104 @@
-const videoElement = document.querySelector('video');
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const videoSelectBtn = document.getElementById('videoSelectBtn');
-
-const { desktopCapturer, remote} = require('electron');
-const { Menu } = remote;
-
-async function getVideoSources() {
-    const inputSources = await desktopCapturer.getSources({
-        types: ['window','screen']
-    });
-
-    const videoOptionsMenu = Menu.buildFromTemplate(
-        inputSources.map(source => {
-            return {
-                label: source.name,
-                click: () => selectSource(source)
-            };
-        })
-    );
-    
-    videoOptionsMenu.popup();
-}
+const { desktopCapturer, remote } = require('electron');
+const { writeFile } = require('fs');
+const { dialog, Menu } = remote;
 
 let mediaRecorder;
 const recordedChunks = [];
 
-async function selectSource(source){
-    videoSelectBtn.innerText = source.name;
 
-    const constraints = {
-        audio:false,
-        video: {
-            mandatory: {
-                chromeMediaSource: 'desktop',
-                chromeMediaSourceId: source.id
-            }
-        }
-    };
+const videoElement = document.querySelector('video');
 
-    const stream = await navigator.mediaDevices
-        .getUserMedia(constraints);
+const startBtn = document.getElementById('startBtn');
+startBtn.onclick = e => {
+  mediaRecorder.start();
+  startBtn.classList.add('is-danger');
+  startBtn.innerText = 'Recording';
+};
 
-    videoElement.srcObject = stream;
-    videoElement.play();
+const stopBtn = document.getElementById('stopBtn');
 
-    const options = { mimeType: 'video/webm; codecs=vp9'};
-    mediaRecorder = new MediaRecorder(stream, options);
+stopBtn.onclick = e => {
+  mediaRecorder.stop();
+  startBtn.classList.remove('is-danger');
+  startBtn.innerText = 'Start';
+};
 
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.onstop = handleStop;
+const videoSelectBtn = document.getElementById('videoSelectBtn');
+videoSelectBtn.onclick = getVideoSources;
+
+
+async function getVideoSources() {
+  const inputSources = await desktopCapturer.getSources({
+    types: ['window', 'screen']
+  });
+
+  const videoOptionsMenu = Menu.buildFromTemplate(
+    inputSources.map(source => {
+      return {
+        label: source.name,
+        click: () => selectSource(source)
+      };
+    })
+  );
+
+
+  videoOptionsMenu.popup();
 }
+
+
+async function selectSource(source) {
+
+  videoSelectBtn.innerText = source.name;
+
+  const constraints = {
+    audio: false,
+    video: {
+      mandatory: {
+        chromeMediaSource: 'desktop',
+        chromeMediaSourceId: source.id
+      }
+    }
+  };
+
+
+  const stream = await navigator.mediaDevices
+    .getUserMedia(constraints);
+
+  videoElement.srcObject = stream;
+  videoElement.play();
+
+ 
+  const options = { mimeType: 'video/webm; codecs=vp9' };
+  mediaRecorder = new MediaRecorder(stream, options);
+
+
+  mediaRecorder.ondataavailable = handleDataAvailable;
+  mediaRecorder.onstop = handleStop;
+
+
+}
+
 
 function handleDataAvailable(e) {
-    console.log('video data available');
-    recordedChunks.push(e.data);
+  console.log('video data available');
+  recordedChunks.push(e.data);
 }
 
-const { writeFile } = require('fs');
 
 async function handleStop(e) {
-    const blob = new Blob(recordedChunks, {
-        type: 'video/webm; codecs=vp9'
-    });
+  const blob = new Blob(recordedChunks, {
+    type: 'video/webm; codecs=vp9'
+  });
 
-    const buffer = Buffer.from(await blob.arrayBuffer());
+  const buffer = Buffer.from(await blob.arrayBuffer());
 
-    const { filePath } = await dialog.showSaveDialog({
-        buttonLabel: 'Save video',
-        defaultPath: `vid-${Date.now()}.webm`
-    });
+  const { filePath } = await dialog.showSaveDialog({
+    buttonLabel: 'Save video',
+    defaultPath: `vid-${Date.now()}.webm`
+  });
 
-    console.log(filePath);
-
+  if (filePath) {
     writeFile(filePath, buffer, () => console.log('video saved successfully!'));
+  }
+
 }
