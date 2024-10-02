@@ -23,6 +23,9 @@ async function getVideoSources() {
     videoOptionsMenu.popup();
 }
 
+let mediaRecorder;
+const recordedChunks = [];
+
 async function selectSource(source){
     videoSelectBtn.innerText = source.name;
 
@@ -35,4 +38,29 @@ async function selectSource(source){
             }
         }
     };
+
+    const stream = await navigator.mediaDevices
+        .getUserMedia(constraints);
+
+    videoElement.srcObject = stream;
+    videoElement.play();
+
+    const options = { mimeType: 'video/webm; codecs=vp9'};
+    mediaRecorder = new MediaRecorder(stream, options);
+
+    mediaRecorder.ondataavailable = handleDataAvailable;
+    mediaRecorder.onstop = handleStop;
+}
+
+function handleDataAvailable(e) {
+    console.log('video data available');
+    recordedChunks.push(e.data);
+}
+
+async function handleStop(e) {
+    const blob = new Blob(recordedChunks, {
+        type: 'video/webm; codecs=vp9'
+    });
+
+    const buffer = Buffer.from(await blob.arrayBuffer());
 }
