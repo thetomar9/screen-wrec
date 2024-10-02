@@ -57,10 +57,21 @@ function handleDataAvailable(e) {
     recordedChunks.push(e.data);
 }
 
+const { writeFile } = require('fs');
+
 async function handleStop(e) {
     const blob = new Blob(recordedChunks, {
         type: 'video/webm; codecs=vp9'
     });
 
     const buffer = Buffer.from(await blob.arrayBuffer());
+
+    const { filePath } = await dialog.showSaveDialog({
+        buttonLabel: 'Save video',
+        defaultPath: `vid-${Date.now()}.webm`
+    });
+
+    console.log(filePath);
+
+    writeFile(filePath, buffer, () => console.log('video saved successfully!'));
 }
